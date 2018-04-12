@@ -39,6 +39,24 @@ class FzfPrompt:
         except:
             raise SystemError("Cannot find 'fzf' installed on PATH. ( {0} )".format(FZF_URL))
 
+    def object_prompt(self, choices=None, key=None, display=None, ofilter=None):
+        if key is None:
+            key = lambda x: str(x)
+        if display is None:
+            display = lambda x: str(x)
+        if ofilter is None:
+            ofilter = lambda x: True
+        delimiter = '-FZF_DELIMITER-'
+        new_choices = map(lambda x: '{}{}{}'.format(key(x),
+                                                    delimiter,
+                                                    display(x)),
+                          filter(ofilter, choices))
+        fzf_options='--with-nth=2 --delimiter={}'.format(delimiter)
+        result = self.prompt(choices=new_choices,
+                      fzf_options=fzf_options)
+        return list(map(lambda x: x.partition(delimiter)[0], result))
+
+
     def prompt(self, choices=None, fzf_options=""):
         # convert lists to strings [ 1, 2, 3 ] => "1\n2\n3"
         choices_str = '\n'.join(map(str, choices))
